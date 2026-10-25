@@ -1,13 +1,23 @@
 # BL2 Android <-> PC Save Converter
 
 Convert Borderlands 2 save files between **Wicked's Android port (v1.7)** and the
-**PC (Steam)** version, in either direction. Drag a save onto a `.bat` file and get a
-converted copy.
+**PC (Steam)** version, in either direction.
+
+**Use it in your browser: https://alexander-clawthorne.github.io/bl2-android-pc-save-converter/**
+
+Or download this repo and drag saves onto a `.bat` file to convert offline on Windows.
 
 > **Scope:** this was built and tested against **Wicked's Android port, version 1.7**,
 > only. Other Android builds, other versions of the port, or other mobile platforms may
 > store saves differently. Wherever this README or the tool says "mobile", it means that
 > port. Back up your files before trying it with anything else.
+
+- Works on character saves (`Save0001.sav`, ...) and profiles (`profile.bin` on PC,
+  `Player1` on mobile).
+- Works out the direction by itself: a mobile file becomes a PC file and vice versa.
+- Never touches the file you drop on it and never overwrites anything. It always writes a new file.
+- No installs for the web version. The offline version is one Python file using only the
+  standard library.
 
 ## Credits
 
@@ -15,13 +25,18 @@ The Android port of Borderlands 2 is by **Wicked**. This tool only converts save
 between that port and the PC game. Without Wicked's port there would be nothing to convert.
 This project is not affiliated with Wicked, Gearbox Software or 2K.
 
-- Works on character saves (`Save0001.sav`, ...) and profiles (`profile.bin` on PC,
-  `Player1` on mobile).
-- Works out the direction by itself: a mobile file becomes a PC file and vice versa.
-- Never touches the file you drop on it and never overwrites anything. It always writes a new file.
-- One Python file, standard library only. Nothing to install apart from Python 3.
+## Web version
 
-## Quick start
+Open the [web page](https://alexander-clawthorne.github.io/bl2-android-pc-save-converter/),
+drop your save files on it, check the slot ID for each character, and click
+**Convert & download**. It does the same job as the script and produces the same files.
+
+**Your files are never uploaded.** The page is static (hosted on GitHub Pages) and does
+all the work in your browser with JavaScript. You can confirm this in your browser's
+developer tools: there are no network requests when you convert. The page lives in
+[`docs/`](docs): `index.html` is the interface and `bl2.js` is the converter.
+
+## Offline version (Windows): quick start
 
 1. Install Python 3 if you don't have it (python.org, tick "Add to PATH").
 2. Drag one or more save files onto **`Drop BL2 save here.bat`**.
@@ -111,6 +126,10 @@ first version of this tool dropped them, and the game showed the character as
 ## Code walkthrough
 
 Everything is in [`bl2_convert.py`](bl2_convert.py), in four sections.
+[`docs/bl2.js`](docs/bl2.js) is a line-by-line JavaScript port with the same function
+names in camelCase (`readContainer`, `lzo1xDecompress`, `wsgEncode`, ...). The browser
+supplies SHA1 (`crypto.subtle`) and zlib (`CompressionStream('deflate')`, which is the
+zlib format), and the port implements CRC32 itself.
 
 ### 1. Outer layer: SHA1 + size + compression
 
@@ -193,6 +212,11 @@ then pauses so you can read the output.
   saves the game had already rewritten.
 - **The Huffman encoder** was checked by decoding its output and comparing with the
   original data.
+- **The web version** was compared with the script on the same inputs, both in Node.js
+  and in a real browser through the page itself. PC files come out byte-identical. Android
+  files contain identical data; only the zlib compressor's byte choices differ (both are
+  standard zlib with the same `78 9c` header the Android game writes). Converting
+  in the browser and loading the result in either game hasn't been tried yet.
 
 ## Known limits
 
