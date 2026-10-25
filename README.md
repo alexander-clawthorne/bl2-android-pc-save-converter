@@ -175,6 +175,7 @@ then pauses so you can read the output.
 
 - **Mobile -> PC:** converted a real mobile character and loaded it in the Steam game. It
   played, and the game saved it back to the slot the tool assigned.
+- **PC -> mobile:** converted a PC save, loaded it in the mobile game, and it worked.
 - **The LZO decoder** correctly reads every save and profile written by the PC game.
 - **Round trips** (PC -> mobile -> PC, and the reverse) give back identical data, including
   saves the game had already rewritten.
@@ -183,8 +184,6 @@ then pauses so you can read the output.
 
 ## Known limits
 
-- **PC -> mobile has not yet been loaded on a phone.** The format logic is the same as
-  the direction that was tested, but keep a copy of the phone's files the first time.
 - **Output names use the slot ID in hex** (slot 10 -> `Save000a.sav`), which is believed
   to be how BL2 names its files but has only been confirmed for IDs 1-9. Using 1-9
   avoids the question.
