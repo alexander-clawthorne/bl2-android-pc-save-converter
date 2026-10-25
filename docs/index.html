@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BL2 Save Converter</title>
+<meta name="description" content="Convert Borderlands 2 saves between Wicked's Android port (v1.7) and PC (Steam), in your browser. Nothing is uploaded.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23f2b705'/%3E%3Cpath d='M9 12h11l-3-3m6 11H12l3 3' stroke='%23161412' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #f4f1ea; --panel: #fbf9f4; --ink: #1d1a16; --muted: #6b645a; --line: #d9d2c4;
+  --accent: #f2b705; --accent-ink: #161412; --ok: #2f7d32; --err: #b3261e; --soft: #ece6da;
+  --mono: ui-monospace, "Cascadia Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15130f; --panel: #1d1a15; --ink: #ece6da; --muted: #a59d8f; --line: #3a352c;
+    --accent: #f2b705; --accent-ink: #161412; --ok: #7cc47f; --err: #f08a80; --soft: #262219;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15130f; --panel: #1d1a15; --ink: #ece6da; --muted: #a59d8f; --line: #3a352c;
+  --accent: #f2b705; --accent-ink: #161412; --ok: #7cc47f; --err: #f08a80; --soft: #262219;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(--mono); }
+a { color: inherit; text-underline-offset: 3px; }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 32px 16px 56px; }
+header { text-align: center; margin-bottom: 28px; }
+h1 { font: 800 clamp(30px, 6vw, 46px)/1.05 system-ui, sans-serif; letter-spacing: -0.02em; margin: 0 0 10px; }
+h1 span { background: var(--accent); color: var(--accent-ink); padding: 0 8px; border-radius: 6px; }
+.sub { color: var(--muted); margin: 0; }
+.pill { display: inline-block; margin-top: 12px; padding: 3px 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; color: var(--muted); background: var(--panel); }
+.pill b { color: var(--ok); font-weight: 600; }
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; align-items: start; }
+@media (max-width: 820px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.drop { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 260px;
+  border: 2px dashed var(--line); border-radius: 10px; background: var(--panel); cursor: pointer; text-align: center; padding: 24px; transition: border-color .15s, background .15s; }
+.drop:hover, .drop.over, .drop:focus-within { border-color: var(--accent); background: var(--soft); }
+.drop strong { font-size: 17px; }
+.drop small { color: var(--muted); }
+.drop svg { width: 40px; height: 40px; color: var(--muted); }
+.drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; }
+.panel h2 { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
+.panel h2::before { content: ""; width: 14px; height: 3px; background: var(--accent); }
+.panel + .panel { margin-top: 16px; }
+.panel ol, .panel ul { margin: 0; padding-left: 18px; }
+.panel li + li { margin-top: 6px; }
+.panel p { margin: 0 0 8px; }
+code { background: var(--soft); padding: 1px 5px; border-radius: 4px; font-size: 13px; word-break: break-all; }
+#files { margin-top: 20px; display: grid; gap: 12px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 16px; align-items: center; }
+.card .name { font-weight: 700; word-break: break-all; }
+.card .meta { color: var(--muted); font-size: 13px; }
+.dir { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 4px; background: var(--accent); color: var(--accent-ink); font-weight: 700; margin-left: 6px; vertical-align: 1px; }
+.actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.actions label { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+input[type=number] { width: 78px; font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); }
+button { font: inherit; font-weight: 700; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--accent-ink); background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+button:hover { filter: brightness(1.05); }
+button:disabled { opacity: .5; cursor: default; }
+button.ghost { background: transparent; color: var(--ink); border-color: var(--line); font-weight: 400; }
+.note { grid-column: 1 / -1; font-size: 13px; }
+.note.ok { color: var(--ok); } .note.err { color: var(--err); } .note.warn { color: var(--muted); }
+.toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+.toolbar:empty { display: none; }
+footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; display: grid; gap: 6px; }
+@media (max-width: 560px) { .card { grid-template-columns: minmax(0, 1fr); } .actions { justify-content: flex-start; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>BL2 Save <span>Converter</span></h1>
+    <p class="sub">Borderlands 2 saves: Wicked's Android port (v1.7) &harr; PC (Steam)</p>
+    <span class="pill"><b>&#9679;</b> Runs in your browser. Files are never uploaded.</span>
+  </header>
+
+  <div class="grid">
+    <main>
+      <label class="drop" id="drop">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+        <strong>Drop save files here</strong>
+        <small>or click to browse. <code>SaveXXXX.sav</code>, <code>profile.bin</code>, <code>Player1</code></small>
+        <input type="file" id="pick" multiple>
+      </label>
+      <div class="toolbar" id="toolbar"></div>
+      <div id="files" aria-live="polite"></div>
+    </main>
+
+    <aside>
+      <div class="panel">
+        <h2>How to</h2>
+        <ol>
+          <li><strong>Back up</strong> the save folder on the device you're copying <em>to</em>.</li>
+          <li>Drop one or more saves. The direction is detected automatically.</li>
+          <li>For characters, choose a <strong>slot ID</strong> no other character on that device uses.</li>
+          <li>Download, then copy the file into the target save folder.</li>
+        </ol>
+      </div>
+      <div class="panel">
+        <h2>Slot IDs matter</h2>
+        <p>Each character stores its own slot number, and the game saves back to the file with
+          that number. If two characters share a slot, playing one <strong>overwrites the other</strong>.</p>
+        <p>Pick an unused number, ideally 1&ndash;9. The file is named to match (slot 6 &rarr; <code>Save0006.sav</code>).</p>
+      </div>
+      <div class="panel">
+        <h2>Where saves live</h2>
+        <p><strong>PC (Steam):</strong><br><code>Documents\My Games\Borderlands 2\WillowGame\SaveData\&lt;Steam ID&gt;\</code></p>
+        <p>If Steam Cloud reports a conflict on the next launch, choose the <strong>local</strong> files.</p>
+        <p><strong>Profiles</strong> (<code>profile.bin</code> / <code>Player1</code>) hold badass rank, golden keys and
+          settings. Replacing one overwrites that device's progress.</p>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    <div><strong>Credits:</strong> the Android port of Borderlands 2 is by <strong>Wicked</strong>. This tool only converts
+      saves for version 1.7 of that port. Other builds or versions may not work. Not affiliated with Wicked, Gearbox Software or 2K.</div>
+    <div>How it works, the source code and an offline drag-and-drop version for Windows:
+      <a href="https://github.com/alexander-clawthorne/bl2-android-pc-save-converter">github.com/alexander-clawthorne/bl2-android-pc-save-converter</a></div>
+  </footer>
+</div>
+
+<script type="module">
+import { inspect, convert } from './bl2.js';
+
+const drop = document.getElementById('drop');
+const pick = document.getElementById('pick');
+const list = document.getElementById('files');
+const toolbar = document.getElementById('toolbar');
+const label = p => (p === 'pc' ? 'PC' : 'Android');
+const entries = [];
+
+const el = (tag, props = {}, ...kids) => {
+  const n = Object.assign(document.createElement(tag), props);
+  n.append(...kids.filter(k => k != null));
+  return n;
+};
+
+function download(name, bytes) {
+  const url = URL.createObjectURL(new Blob([bytes], { type: 'application/octet-stream' }));
+  const a = el('a', { href: url, download: name });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+function renderToolbar() {
+  toolbar.replaceChildren();
+  const ready = entries.filter(e => e.info);
+  if (ready.length < 2) return;
+  toolbar.append(
+    el('span', { className: 'meta', textContent: `${ready.length} files ready` }),
+    el('span', { className: 'actions' },
+      el('button', { className: 'ghost', textContent: 'Clear', onclick: () => { entries.length = 0; list.replaceChildren(); renderToolbar(); } }),
+      el('button', { textContent: 'Convert & download all', onclick: () => ready.forEach(e => e.run()) })));
+}
+
+async function addFile(f) {
+  const card = el('div', { className: 'card' });
+  const note = el('div', { className: 'note warn', textContent: 'Reading...' });
+  card.append(el('div', {}, el('div', { className: 'name', textContent: f.name })), note);
+  list.append(card);
+  const entry = { card };
+  entries.push(entry);
+  try {
+    const info = await inspect(new Uint8Array(await f.arrayBuffer()));
+    entry.info = info;
+    const head = card.firstChild;
+    head.firstChild.append(el('span', { className: 'dir', textContent: `${label(info.from)} \u2192 ${label(info.to)}` }));
+    head.append(el('div', { className: 'meta', textContent: info.kind === 'character'
+      ? `Character: ${info.cls}, level ${info.level ?? '?'}, currently slot ${info.slot}`
+      : 'Profile (account-wide: badass rank, golden keys, settings)' }));
+
+    const actions = el('div', { className: 'actions' });
+    let slotInput = null;
+    if (info.kind === 'character') {
+      slotInput = el('input', { type: 'number', min: 1, max: 9999, step: 1, value: info.slot });
+      actions.append(el('label', {}, 'Slot ID', slotInput));
+    }
+    const btn = el('button', { textContent: 'Convert & download' });
+    actions.append(btn);
+    card.insertBefore(actions, note);
+
+    entry.run = async () => {
+      let slot;
+      if (slotInput) {
+        slot = Number(slotInput.value);
+        if (!Number.isInteger(slot) || slot < 1 || slot > 9999) {
+          note.className = 'note err'; note.textContent = 'Slot ID must be a whole number from 1 to 9999.'; return;
+        }
+      }
+      btn.disabled = true;
+      try {
+        const { name, file } = await convert(info, slot);
+        download(name, file);
+        note.className = 'note ok';
+        note.textContent = info.kind === 'character'
+          ? `Downloaded ${name}, verified. Put it in the ${label(info.to)} save folder; make sure no other character there uses slot ${slot}.`
+            + (slot > 9 ? ' (Slots above 9 use hex file names and are less tested.)' : '')
+          : `Downloaded ${name}, verified. Replacing the ${label(info.to)} profile overwrites that device's progress.`;
+      } catch (e) {
+        note.className = 'note err'; note.textContent = `Error: ${e.message}`;
+      } finally { btn.disabled = false; }
+    };
+    btn.onclick = entry.run;
+    note.className = 'note warn';
+    note.textContent = info.kind === 'character' ? 'Ready. Check the slot ID, then convert.' : 'Ready.';
+  } catch (e) {
+    note.className = 'note err';
+    note.textContent = `Not converted: ${e.message}`;
+  }
+  renderToolbar();
+}
+
+const addAll = files => [...files].forEach(addFile);
+pick.addEventListener('change', () => { addAll(pick.files); pick.value = ''; });
+['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => addAll(e.dataTransfer.files));
+// Dropping anywhere else on the page should not navigate away from it.
+window.addEventListener('dragover', e => e.preventDefault());
+window.addEventListener('drop', e => e.preventDefault());
+</script>
+</body>
+</html>
