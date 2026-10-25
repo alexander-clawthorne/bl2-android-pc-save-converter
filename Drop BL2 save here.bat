@@ -1,5 +1,5 @@
 @echo off
-rem Borderlands 2 save converter (mobile <-> PC). Drag one or more save files onto this file.
+rem Borderlands 2 save converter: Wicked's Android port (v1.7) <-> PC. Drag one or more save files onto this file.
 rem Needs Python 3. Output goes to a "converted to pc" / "converted to mobile" folder in this folder.
 if "%~1"=="" (
   echo Drag a Borderlands 2 save file ^(SaveXXXX.sav, profile.bin or Player1^) onto this file.

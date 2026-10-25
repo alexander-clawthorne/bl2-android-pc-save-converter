@@ -1,7 +1,19 @@
-# BL2 Save Converter
+# BL2 Android <-> PC Save Converter
 
-Convert Borderlands 2 save files between the **mobile** version and the **PC (Steam)**
-version, in either direction. Drag a save onto a `.bat` file and get a converted copy.
+Convert Borderlands 2 save files between **Wicked's Android port (v1.7)** and the
+**PC (Steam)** version, in either direction. Drag a save onto a `.bat` file and get a
+converted copy.
+
+> **Scope:** this was built and tested against **Wicked's Android port, version 1.7**,
+> only. Other Android builds, other versions of the port, or other mobile platforms may
+> store saves differently. Wherever this README or the tool says "mobile", it means that
+> port. Back up your files before trying it with anything else.
+
+## Credits
+
+The Android port of Borderlands 2 is by **Wicked**. This tool only converts save files
+between that port and the PC game. Without Wicked's port there would be nothing to convert.
+This project is not affiliated with Wicked, Gearbox Software or 2K.
 
 - Works on character saves (`Save0001.sav`, ...) and profiles (`profile.bin` on PC,
   `Player1` on mobile).

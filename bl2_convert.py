@@ -1,4 +1,7 @@
-"""Borderlands 2 save converter: mobile <-> PC.
+"""Borderlands 2 save converter: Android <-> PC.
+
+"Mobile" below means Wicked's Android port of Borderlands 2, version 1.7, the only
+Android build this was made and tested against. Android port by Wicked.
 
 Both platforms use the same file layout:
     SHA1 (20 bytes) | uncompressed size (4 bytes, big-endian) | compressed payload
