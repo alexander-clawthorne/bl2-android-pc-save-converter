@@ -1,0 +1,9 @@
+# Converted output and any save files: personal game data, never commit
+converted to pc/
+converted to mobile/
+*.sav
+*.sav.bak
+profile.bin
+Player1
+
+__pycache__/
